@@ -13,10 +13,14 @@ namespace invaders
         {
             Start,
             Play,
-            ScoreScreen
+            ScoreScreen,
+            SettingsMenu,
+            PauseMenu,
+            Menu,
+            DevMenu
         }
 
-        GameState state;
+        Stack<GameState> stateStack = new Stack<GameState>();
 
         int window_width = 680;
         int window_height = 420;
@@ -25,7 +29,9 @@ namespace invaders
         List<Bullet> bullets;
         List<Enemy> enemies;
         Menu menu;
-        
+        SettingsMenu settingsMenu;
+        PauseMenu pauseMenu;
+        DevMenu devMenu;
 
         double enemyShootInterval = 1.0f;
         double lastEnemyShootTime = 5.0f;
@@ -61,9 +67,11 @@ namespace invaders
         void Init()
         {
             Raylib.InitWindow(window_width, window_height, "Space Invaders");
+            Raylib.SetExitKey(KeyboardKey.KEY_TAB);
             Raylib.SetTargetFPS(30);
 
             Raylib.InitAudioDevice();
+            RayGui.GuiLoadStyle("style.rgs");
 
             playerImage = Raylib.LoadTexture("images/ufo.png");
             enemyImage = Raylib.LoadTexture("images/ufo2.png");
@@ -75,9 +83,50 @@ namespace invaders
 
             Raylib.PlayMusicStream(music);
             Raylib.SetMusicVolume(music, 2f);
-            state = GameState.Start;
+            stateStack.Push(GameState.Start);
+            //statestack = GameState.Start; <-- vanha
 
             ResetGame();
+        }
+
+        void OnStartButtonPressed(Object sender, EventArgs e)
+        {
+            ResetGame();
+            stateStack.Push(GameState.Play);
+        }
+
+        void OnSettingsBackPressed(Object sender, EventArgs e)
+        {
+            stateStack.Pop();
+        }
+
+        void OnSettingsButtonPressed(Object sender, EventArgs e)
+        {
+            stateStack.Push( GameState.SettingsMenu);
+        }
+        void OnQuitButtonPressed(Object sender, EventArgs e)
+        {
+            Raylib.CloseWindow();
+        }
+        void OnPauseSettingsButtonPressed(Object sender, EventArgs e)
+        {
+            stateStack.Push( GameState.SettingsMenu);
+        }
+        void OnPauseButtonPressed(Object sender, EventArgs e)
+        {
+            stateStack.Push( GameState.PauseMenu);
+        }
+        void OnPauseBackPressed (object sender, EventArgs e)
+        {
+            stateStack.Pop();
+        }
+        void OnDevBackButtonPressed(object sender, EventArgs e)
+        {
+            stateStack.Pop();
+        }
+        void OnDevModePressed(object sender, EventArgs e)
+        {
+            // go to debug mode
         }
 
         /// <summary>
@@ -89,7 +138,19 @@ namespace invaders
             int playerSize = 40;
             Vector2 playerStart = new Vector2(window_width / 2, window_height - playerSize * 2);
             player = new Player(playerStart, playerSpeed, playerSize, playerImage);
+
             menu = new Menu(font2, fontSize2);
+            menu.StartButtonPressed += OnStartButtonPressed;
+            menu.SettingsButtonPressed += OnSettingsButtonPressed;
+            settingsMenu = new SettingsMenu(font2, fontSize2);
+            settingsMenu.BackButtonPressed += OnSettingsBackPressed;
+            pauseMenu = new PauseMenu(font2, fontSize2);
+            pauseMenu.BackButtonPressed += OnPauseBackPressed;
+            pauseMenu.QuitButtonPressed += OnQuitButtonPressed;
+            devMenu = new DevMenu(font2, fontSize2);
+            pauseMenu.SettingsButtonPressed += OnPauseSettingsButtonPressed;
+            devMenu.DevBackButtonPressed += OnDevBackButtonPressed;
+            devMenu.DevModeButtonPressed += OnDevModePressed;
 
             bullets = new List<Bullet>();
             enemies = new List<Enemy>();
@@ -140,15 +201,13 @@ namespace invaders
             while (Raylib.WindowShouldClose() == false)
             {
                 Raylib.UpdateMusicStream(music);
-                switch (state)
+                switch (stateStack.Peek())
 
                 // Eri peliruudut ja niiden sisällä toimivat metodit
                 {
                     case GameState.Start:
                         UpdateStart();
                         Raylib.BeginDrawing();
-                        Raylib.ClearBackground(Raylib.PURPLE);
-                        menu.DrawStartScreen();
                         Raylib.EndDrawing();
                         break;
 
@@ -164,8 +223,27 @@ namespace invaders
                     case GameState.ScoreScreen:
                         ScoreUpdate();
                         Raylib.BeginDrawing();
-                        Raylib.ClearBackground(Raylib.PURPLE);
                         ScoreDraw();
+                        Raylib.EndDrawing();
+                        break;
+
+                    case GameState.Menu:
+                        menu.DrawStartScreen();
+                        Raylib.EndDrawing();
+                        break;
+
+                    case GameState.SettingsMenu:
+                        settingsMenu.DrawSettingsMenu();
+                        Raylib.EndDrawing();
+                        break;
+
+                    case GameState.PauseMenu:
+                        pauseMenu.DrawPauseMenu();
+                        Raylib.EndDrawing();
+                        break;
+
+                    case GameState.DevMenu:
+                        devMenu.DrawDevMenu();
                         Raylib.EndDrawing();
                         break;
                 }
@@ -178,7 +256,7 @@ namespace invaders
 
             if (Raylib.IsKeyPressed(KeyboardKey.KEY_SPACE))
             {
-                state = GameState.Play;
+                stateStack.Push( GameState.Play);
             }
         }
 
@@ -289,6 +367,18 @@ namespace invaders
             UpdateBullets();
             UpdateEnemies();
             CheckCollisions();
+            
+            if (Raylib.IsKeyPressed(KeyboardKey.KEY_ESCAPE))
+            {
+                OnPauseButtonPressed(this, EventArgs.Empty);
+            }
+
+            if (Raylib.IsKeyPressed(KeyboardKey.KEY_ONE))
+            {
+# if DEBUG
+                stateStack.Push(GameState.DevMenu);
+#endif
+            }
         }
 
         void CheckCollisions()
@@ -320,7 +410,7 @@ namespace invaders
                                 int enemiesLeft = CountAliveEnemies();
                                 if (enemiesLeft == 0)
                                 {
-                                    state = GameState.ScoreScreen;
+                                    stateStack.Push( GameState.ScoreScreen);
                                 }
                                 break;
                             }
@@ -329,7 +419,7 @@ namespace invaders
                         {
                             if (Raylib.CheckCollisionRecs(bulletRec, playerRect))
                             {
-                                state = GameState.ScoreScreen;
+                                stateStack.Push( GameState.ScoreScreen);
                             }
                         }
                     }
@@ -436,7 +526,7 @@ namespace invaders
             if (Raylib.IsKeyPressed(KeyboardKey.KEY_SPACE))
             {
                 ResetGame();
-                state = GameState.Play;
+                stateStack.Push( GameState.Play);
             }
         }
         void ScoreUpdate()
