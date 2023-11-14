@@ -120,6 +120,20 @@ namespace invaders
         {
             stateStack.Pop();
         }
+        void OnRestartButtonPressed(object sender, EventArgs e)
+        {
+            ResetGame();
+        }
+        void OnInvincibilityButtonPressed(object sender, EventArgs e)
+        {
+            player.InvincibilityMode();
+
+            stateStack.Pop();
+        }
+        void OnDestroyButtonPressed(object sender, EventArgs e)
+        {
+            enemies.Clear();
+        }
         void OnDevBackButtonPressed(object sender, EventArgs e)
         {
             stateStack.Pop();
@@ -142,13 +156,19 @@ namespace invaders
             menu = new Menu(font2, fontSize2);
             menu.StartButtonPressed += OnStartButtonPressed;
             menu.SettingsButtonPressed += OnSettingsButtonPressed;
+
             settingsMenu = new SettingsMenu(font2, fontSize2);
             settingsMenu.BackButtonPressed += OnSettingsBackPressed;
+
             pauseMenu = new PauseMenu(font2, fontSize2);
             pauseMenu.BackButtonPressed += OnPauseBackPressed;
             pauseMenu.QuitButtonPressed += OnQuitButtonPressed;
-            devMenu = new DevMenu(font2, fontSize2);
             pauseMenu.SettingsButtonPressed += OnPauseSettingsButtonPressed;
+            pauseMenu.RestartButtonPressed += OnRestartButtonPressed;
+            pauseMenu.InvincibilityButtonPressed += OnInvincibilityButtonPressed;
+            pauseMenu.DestroyButtonPressed += OnDestroyButtonPressed;
+
+            devMenu = new DevMenu(font2, fontSize2);
             devMenu.DevBackButtonPressed += OnDevBackButtonPressed;
             devMenu.DevModeButtonPressed += OnDevModePressed;
 
@@ -419,7 +439,10 @@ namespace invaders
                         {
                             if (Raylib.CheckCollisionRecs(bulletRec, playerRect))
                             {
-                                stateStack.Push( GameState.ScoreScreen);
+                                if (player.isInvincible == false)
+                                {
+                                    stateStack.Push(GameState.ScoreScreen);
+                                }
                             }
                         }
                     }

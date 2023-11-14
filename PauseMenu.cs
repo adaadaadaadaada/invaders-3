@@ -19,6 +19,9 @@ internal class PauseMenu
     public event EventHandler BackButtonPressed;
     public event EventHandler QuitButtonPressed;
     public event EventHandler SettingsButtonPressed;
+    public event EventHandler RestartButtonPressed;
+    public event EventHandler InvincibilityButtonPressed;
+    public event EventHandler DestroyButtonPressed;
 
     public void DrawPauseMenu()
     {
@@ -35,14 +38,26 @@ internal class PauseMenu
         {
             BackButtonPressed.Invoke(this, EventArgs.Empty);
         }
-        if (RayGui.GuiButton(new Rectangle(window_width / 2 - sw.X / 2, window_height / 2, sw.X, sw.Y), "Quit"))
+        if (RayGui.GuiButton(new Rectangle(window_width / 2 - sw.X / 2, window_height / 2 + 30, sw.X, sw.Y), "Quit"))
         {
             QuitButtonPressed.Invoke(this, EventArgs.Empty);
             return;
         }
-        if (RayGui.GuiButton(new Rectangle(window_width / 2 - sw.X / 2, window_height / 2 - 60, sw.X, sw.Y), "Settings"))
+        if (RayGui.GuiButton(new Rectangle(window_width / 2 - sw.X / 2, window_height / 2, sw.X, sw.Y), "Settings"))
         {
             SettingsButtonPressed.Invoke(this, EventArgs.Empty);
+        }
+        if (RayGui.GuiButton(new Rectangle(window_width / 2 - sw.X / 2, window_height / 2 - 30, sw.X, sw.Y), "Restart"))
+        {
+            RestartButtonPressed.Invoke(this, EventArgs.Empty);
+        }
+        if (RayGui.GuiButton(new Rectangle(window_width / 2 - sw.X / 2, window_height / 2 - 60, sw.X, sw.Y), "Invincibility"))
+        {
+            InvincibilityButtonPressed.Invoke(this, EventArgs.Empty);
+        }
+        if (RayGui.GuiButton(new Rectangle(window_width / 2 - sw.X / 2, window_height / 2 - 90, sw.X, sw.Y), "Destroy all enemies"))
+        {
+            DestroyButtonPressed.Invoke(this, EventArgs.Empty);
         }
     }
 }

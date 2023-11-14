@@ -16,6 +16,8 @@ namespace invaders
         double shootInterval = 0.3;
         double lastShootTime;
 
+        public bool isInvincible = false;
+
         public Texture playerImage;
 
         public Player(Vector2 startPos, float speed, int size, Texture playerImage)
@@ -58,6 +60,11 @@ namespace invaders
         public void Draw()
         {
             Raylib.DrawTextureEx(playerImage, transform.position, 0, collision.size.X / playerImage.width, Raylib.WHITE);
+        }
+
+        public void InvincibilityMode()
+        {
+            isInvincible =! isInvincible;
         }
     }
 }
