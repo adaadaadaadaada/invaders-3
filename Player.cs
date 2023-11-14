@@ -15,6 +15,8 @@ namespace invaders
 
         double shootInterval = 0.3;
         double lastShootTime;
+        float currentSpeed = 0;
+        float direction = 0f;
 
         public bool isInvincible = false;
 
@@ -32,14 +34,34 @@ namespace invaders
         public bool Update()
         {
             float deltaTime = Raylib.GetFrameTime();
+            float acceleration = 30;
+            float slowdown = 5;
+
             if (Raylib.IsKeyDown(KeyboardKey.KEY_A))
             {
-                transform.position.X -= transform.speed.X * deltaTime;
+                direction -= 1;
+                currentSpeed += acceleration * deltaTime;
             }
-            if (Raylib.IsKeyDown(KeyboardKey.KEY_D))
+            else if (Raylib.IsKeyDown(KeyboardKey.KEY_D))
             {
-                transform.position.X += transform.speed.X * deltaTime;
+                direction += 1;
+                currentSpeed += acceleration * deltaTime;
             }
+            else
+            {
+                currentSpeed -= slowdown * deltaTime;
+            }
+
+            if (currentSpeed > transform.speed.X)
+            {
+                currentSpeed = transform.speed.X;
+            }
+            if (currentSpeed < 0)
+            {
+                currentSpeed = 0;
+            }
+
+            transform.position.X += direction * currentSpeed * deltaTime;
 
             bool shoot = false;
 

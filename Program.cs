@@ -148,7 +148,7 @@ namespace invaders
         /// </summary>
         void ResetGame()
         {
-            float playerSpeed = 120;
+            float playerSpeed = 50;
             int playerSize = 40;
             Vector2 playerStart = new Vector2(window_width / 2, window_height - playerSize * 2);
             player = new Player(playerStart, playerSpeed, playerSize, playerImage);
